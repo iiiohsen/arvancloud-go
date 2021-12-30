@@ -1,4 +1,4 @@
-package arvancloud
+package sdk
 
 // APIKey contains a users API Key for interacting with the API
 type APIKey struct {
