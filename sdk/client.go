@@ -1,1 +1,262 @@
 package sdk
+
+import (
+	"context"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"time"
+
+	"github.com/go-resty/resty/v2"
+)
+
+var envDebug = false
+
+const (
+	// APIHost Arvancloud API hostname
+	APIHost = "napi.arvancloud.com"
+	// APIHostVar environment var to check for alternate API URL
+	APIHostVar = "ARVANCLOUD_URL"
+	// APIHostCert environment var containing path to CA cert to validate against
+	APIHostCert = "ARVANCLOUD_CA"
+	// APIVersion Arvancloud API version
+	APIVersion = "v1"
+	// APIVersionVar environment var to check for alternate API Version
+	APIVersionVar = "ARVANCLOUD_API_VERSION"
+	// APIProto connect to API with http(s)
+	APIProto = "https"
+	// APIEnvVar environment var to check for API token
+	APIEnvVar = "ARVANCLOUD_TOKEN"
+	// APISecondsPerPoll how frequently to poll for new Events or Status in WaitFor functions
+	APISecondsPerPoll = 3
+	// Maximum wait time for retries
+	APIRetryMaxWaitTime = time.Duration(30) * time.Second
+)
+
+// Client is a wrapper around the Resty client
+type Client struct {
+	resty             *resty.Client
+	userAgent         string
+	resources         map[string]*Resource
+	debug             bool
+	retryConditionals []RetryConditional
+
+	millisecondsPerPoll time.Duration
+
+	baseURL    string
+	apiVersion string
+	apiProto   string
+
+	Account *Resource
+}
+
+// R wraps resty's R method
+func (c *Client) R(ctx context.Context) *resty.Request {
+	return c.resty.R().
+		ExpectContentType("application/json").
+		SetHeader("Content-Type", "application/json").
+		SetContext(ctx).
+		SetError(APIError{})
+}
+
+// SetUserAgent sets a custom user-agent for HTTP requests
+func (c *Client) SetUserAgent(ua string) *Client {
+	c.userAgent = ua
+	c.resty.SetHeader("User-Agent", c.userAgent)
+
+	return c
+}
+
+// SetBaseURL sets the base URL of the Linode v4 API (https://api.linode.com/v4)
+func (c *Client) SetBaseURL(baseURL string) *Client {
+	baseURLPath, _ := url.Parse(baseURL)
+
+	c.baseURL = path.Join(baseURLPath.Host, baseURLPath.Path)
+	c.apiProto = baseURLPath.Scheme
+
+	c.updateHostURL()
+
+	return c
+}
+
+func NewClient(hc *http.Client) (client Client) {
+	if hc != nil {
+		client.resty = resty.NewWithClient(hc)
+	} else {
+		client.resty = resty.New()
+	}
+
+	client.SetUserAgent(DefaultUserAgent)
+
+	baseURL, baseURLExists := os.LookupEnv(APIHostVar)
+
+	if baseURLExists {
+		client.SetBaseURL(baseURL)
+	} else {
+		apiVersion, apiVersionExists := os.LookupEnv(APIVersionVar)
+		if apiVersionExists {
+			client.SetAPIVersion(apiVersion)
+		} else {
+			client.SetAPIVersion(APIVersion)
+		}
+	}
+
+	certPath, certPathExists := os.LookupEnv(APIHostCert)
+
+	if certPathExists {
+		cert, err := ioutil.ReadFile(certPath)
+		if err != nil {
+			log.Fatalf("[ERROR] Error when reading cert at %s: %s\n", certPath, err.Error())
+		}
+
+		client.SetRootCertificate(certPath)
+
+		if envDebug {
+			log.Printf("[DEBUG] Set API root certificate to %s with contents %s\n", certPath, cert)
+		}
+	}
+
+	client.
+		SetRetryWaitTime((1000 * APISecondsPerPoll) * time.Millisecond).
+		SetPollDelay(1000 * APISecondsPerPoll).
+		SetRetries().
+		SetDebug(envDebug)
+
+	addResources(&client)
+
+	return
+}
+
+// SetDebug sets the debug on resty's client
+func (c *Client) SetDebug(debug bool) *Client {
+	c.debug = debug
+	c.resty.SetDebug(debug)
+
+	return c
+}
+
+// nolint
+func addResources(client *Client) {
+	resources := map[string]*Resource{
+		accountName: NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+	}
+
+	client.resources = resources
+
+	client.Account = resources[accountName]
+
+}
+
+// SetRetries adds retry conditions for "Linode Busy." errors and 429s.
+func (c *Client) SetRetries() *Client {
+	c.
+		addRetryConditional(linodeBusyRetryCondition).
+		addRetryConditional(tooManyRequestsRetryCondition).
+		addRetryConditional(serviceUnavailableRetryCondition).
+		addRetryConditional(requestTimeoutRetryCondition).
+		SetRetryMaxWaitTime(APIRetryMaxWaitTime)
+	configureRetries(c)
+	return c
+}
+
+func (c *Client) addRetryConditional(retryConditional RetryConditional) *Client {
+	c.retryConditionals = append(c.retryConditionals, retryConditional)
+	return c
+}
+
+// SetRetryMaxWaitTime sets the maximum delay before retrying a request.
+func (c *Client) SetRetryMaxWaitTime(max time.Duration) *Client {
+	c.resty.SetRetryMaxWaitTime(max)
+	return c
+}
+
+// SetPollDelay sets the number of milliseconds to wait between events or status polls.
+// Affects all WaitFor* functions and retries.
+func (c *Client) SetPollDelay(delay time.Duration) *Client {
+	c.millisecondsPerPoll = delay
+	return c
+}
+
+// SetRetryWaitTime sets the default (minimum) delay before retrying a request.
+func (c *Client) SetRetryWaitTime(min time.Duration) *Client {
+	c.resty.SetRetryWaitTime(min)
+	return c
+}
+
+// SetRootCertificate adds a root certificate to the underlying TLS client config
+func (c *Client) SetRootCertificate(path string) *Client {
+	c.resty.SetRootCertificate(path)
+	return c
+}
+
+// SetAPIVersion sets the version of the API to interface with
+func (c *Client) SetAPIVersion(apiVersion string) *Client {
+	c.apiVersion = apiVersion
+
+	c.updateHostURL()
+
+	return c
+}
+
+func (c *Client) updateHostURL() {
+	apiProto := APIProto
+	baseURL := APIHost
+	apiVersion := APIVersion
+
+	if c.baseURL != "" {
+		baseURL = c.baseURL
+	}
+
+	if c.apiVersion != "" {
+		apiVersion = c.apiVersion
+	}
+
+	if c.apiProto != "" {
+		apiProto = c.apiProto
+	}
+
+	c.resty.SetHostURL(fmt.Sprintf("%s://%s/%s", apiProto, baseURL, apiVersion))
+}
+func copyBool(bPtr *bool) *bool {
+	if bPtr == nil {
+		return nil
+	}
+
+	t := *bPtr
+
+	return &t
+}
+
+func copyInt(iPtr *int) *int {
+	if iPtr == nil {
+		return nil
+	}
+
+	t := *iPtr
+
+	return &t
+}
+
+func copyString(sPtr *string) *string {
+	if sPtr == nil {
+		return nil
+	}
+
+	t := *sPtr
+
+	return &t
+}
+
+func copyTime(tPtr *time.Time) *time.Time {
+	if tPtr == nil {
+		return nil
+	}
+
+	t := *tPtr
+
+	return &t
+}
