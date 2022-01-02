@@ -20,12 +20,12 @@ type RetryConditional resty.RetryConditionFunc
 // type RetryAfter func(c *resty.Client, r *resty.Response) (time.Duration, error)
 type RetryAfter resty.RetryAfterFunc
 
-// SetLinodeBusyRetry configures resty to retry specifically on "Linode busy." errors
+// SetArvancloudBusyRetry configures resty to retry specifically on "Arvancloud busy." errors
 // The retry wait time is configured in SetPollDelay
-func linodeBusyRetryCondition(r *resty.Response, _ error) bool {
+func ArvancloudBusyRetryCondition(r *resty.Response, _ error) bool {
 	apiError, ok := r.Error().(*APIError)
-	linodeBusy := ok && apiError.Error() == "Linode busy."
-	retry := r.StatusCode() == http.StatusBadRequest && linodeBusy
+	arvancloudBusy := ok && apiError.Error() == "Arvancloud busy."
+	retry := r.StatusCode() == http.StatusBadRequest && arvancloudBusy
 	return retry
 }
 
