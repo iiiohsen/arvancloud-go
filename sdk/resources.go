@@ -10,11 +10,13 @@ import (
 )
 
 const (
-	accountName         = "account"
-	accountSettingsName = "accountsettings"
-	domainRecordsName   = "records"
-	domainsName         = "domains"
-	accountEndpoint     = "account"
+	accountName           = "account"
+	accountSettingsName   = "accountsettings"
+	domainRecordsName     = "records"
+	domainsName           = "domains"
+	domainsEndpoint       = "domains"
+	accountEndpoint       = "account"
+	domainRecordsEndpoint = "domains/{{ .ID }}/records"
 )
 
 // Resource represents a arvancloud API resource

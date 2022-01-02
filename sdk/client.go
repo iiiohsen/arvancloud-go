@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -24,7 +23,7 @@ const (
 	// APIHostCert environment var containing path to CA cert to validate against
 	APIHostCert = "ARVANCLOUD_CA"
 	// APIVersion Arvancloud API version
-	APIVersion = "v1"
+	APIVersion = "cdn/4.0"
 	// APIVersionVar environment var to check for alternate API Version
 	APIVersionVar = "ARVANCLOUD_API_VERSION"
 	// APIProto connect to API with http(s)
@@ -51,7 +50,9 @@ type Client struct {
 	apiVersion string
 	apiProto   string
 
-	Account *Resource
+	Domains       *Resource
+	DomainRecords *Resource
+	Account       *Resource
 }
 
 // R wraps resty's R method
@@ -63,15 +64,19 @@ func (c *Client) R(ctx context.Context) *resty.Request {
 		SetError(APIError{})
 }
 
-// SetUserAgent sets a custom user-agent for HTTP requests
-func (c *Client) SetUserAgent(ua string) *Client {
+// SetAuthHeader sets a custom user-agent for HTTP requests and APIkey
+func (c *Client) SetAuthHeader(ua, apkiKey string) *Client {
 	c.userAgent = ua
 	c.resty.SetHeader("User-Agent", c.userAgent)
-
+	c.resty.SetHeader("Authorization", apkiKey)
 	return c
 }
 
-// SetBaseURL sets the base URL of the Linode v4 API (https://api.linode.com/v4)
+func (c *Client) SetUserAgent(apkiKey string) *Client {
+	c.resty.SetHeader("User-Agent", apkiKey)
+	return c
+}
+
 func (c *Client) SetBaseURL(baseURL string) *Client {
 	baseURLPath, _ := url.Parse(baseURL)
 
@@ -83,15 +88,11 @@ func (c *Client) SetBaseURL(baseURL string) *Client {
 	return c
 }
 
-func NewClient(hc *http.Client) (client Client) {
-	if hc != nil {
-		client.resty = resty.NewWithClient(hc)
-	} else {
-		client.resty = resty.New()
-	}
+func NewClient(apikey string) (client Client) {
 
-	client.SetUserAgent(DefaultUserAgent)
+	client.resty = resty.New()
 
+	client.SetAuthHeader(DefaultUserAgent, apikey)
 	baseURL, baseURLExists := os.LookupEnv(APIHostVar)
 
 	if baseURLExists {
@@ -142,19 +143,22 @@ func (c *Client) SetDebug(debug bool) *Client {
 // nolint
 func addResources(client *Client) {
 	resources := map[string]*Resource{
-		accountName: NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+		accountName:       NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+		domainsName:       NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
+		domainRecordsName: NewResource(client, domainRecordsName, domainRecordsEndpoint, true, DomainRecord{}, DomainRecordsPagedResponse{}),
 	}
 
 	client.resources = resources
 
 	client.Account = resources[accountName]
+	client.DomainRecords = resources[domainRecordsName]
+	client.Domains = resources[domainsName]
 
 }
 
-// SetRetries adds retry conditions for "Linode Busy." errors and 429s.
 func (c *Client) SetRetries() *Client {
 	c.
-		addRetryConditional(linodeBusyRetryCondition).
+		addRetryConditional(ArvancloudBusyRetryCondition).
 		addRetryConditional(tooManyRequestsRetryCondition).
 		addRetryConditional(serviceUnavailableRetryCondition).
 		addRetryConditional(requestTimeoutRetryCondition).

@@ -18,14 +18,14 @@ const (
 	ErrorFromStringer = 3
 )
 
-// Error wraps the LinodeGo error with the relevant http.Response
+// Error wraps the ArvancloudGo error with the relevant http.Response
 type Error struct {
 	Response *http.Response
 	Code     int
 	Message  string
 }
 
-// APIErrorReason is an individual invalid request message returned by the Linode API
+// APIErrorReason is an individual invalid request message returned by the Arvancloud API
 type APIErrorReason struct {
 	Reason string `json:"reason"`
 	Field  string `json:"field"`
@@ -39,7 +39,7 @@ func (r APIErrorReason) Error() string {
 	return fmt.Sprintf("[%s] %s", r.Field, r.Reason)
 }
 
-// APIError is the error-set returned by the Linode API when presented with an invalid request
+// APIError is the error-set returned by the Arvancloud API when presented with an invalid request
 type APIError struct {
 	Errors []APIErrorReason `json:"errors"`
 }
@@ -54,7 +54,7 @@ func coupleAPIErrors(r *resty.Response, err error) (*resty.Response, error) {
 		expectedContentType := r.Request.Header.Get("Accept")
 		responseContentType := r.Header().Get("Content-Type")
 
-		// If the upstream Linode API server being fronted fails to respond to the request,
+		// If the upstream Arvancloud API server being fronted fails to respond to the request,
 		// the http server will respond with a default "Bad Gateway" page with Content-Type
 		// "text/html".
 		if r.StatusCode() == http.StatusBadGateway && responseContentType == "text/html" {
@@ -96,7 +96,7 @@ func (g Error) Error() string {
 	return fmt.Sprintf("[%03d] %s", g.Code, g.Message)
 }
 
-// NewError creates a linodego.Error with a Code identifying the source err type,
+// NewError creates a arvancloudgo.Error with a Code identifying the source err type,
 // - ErrorFromString   (1) from a string
 // - ErrorFromError    (2) for an error
 // - ErrorFromStringer (3) for a Stringer
@@ -128,7 +128,7 @@ func NewError(err interface{}) *Error {
 	case fmt.Stringer:
 		return &Error{Code: ErrorFromStringer, Message: e.String()}
 	default:
-		log.Fatalln("Unsupported type to linodego.NewError")
+		log.Fatalln("Unsupported type to arvancloudgo.NewError")
 		panic(err)
 	}
 }
