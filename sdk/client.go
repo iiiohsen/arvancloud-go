@@ -143,9 +143,8 @@ func (c *Client) SetDebug(debug bool) *Client {
 // nolint
 func addResources(client *Client) {
 	resources := map[string]*Resource{
-		accountName:       NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
-		domainsName:       NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
-		domainRecordsName: NewResource(client, domainRecordsName, domainRecordsEndpoint, true, DomainRecord{}, DomainRecordsPagedResponse{}),
+		accountName: NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+		domainsName: NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
 	}
 
 	client.resources = resources

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -20,19 +21,14 @@ func main() {
 		log.Print(err)
 	}
 	api.SetDebug(true)
-	// account, err := api.GetAccount(context.Background())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// out, err := json.Marshal(account)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Printf("%s", out)
 	domains, err := api.ListDomains(context.Background(), nil)
 	if err != nil {
-		log.Print("Error listing domains, expected struct, got error %v", err)
+		log.Printf("Error listing domains, expected struct, got error %v", err)
 	}
-	fmt.Print(domains)
+	out, err := json.Marshal(domains)
+	if err != nil {
+		log.Print(err)
+	}
+	fmt.Print(string(out))
 
 }

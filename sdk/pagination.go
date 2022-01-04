@@ -15,9 +15,13 @@ import (
 
 // PageOptions are the pagination parameters for List endpoints
 type PageOptions struct {
-	Page    int `url:"page,omitempty" json:"page"`
-	Pages   int `url:"pages,omitempty" json:"pages"`
-	Results int `url:"results,omitempty" json:"results"`
+	CurrentPage int    `json:"current_page"`
+	From        int    `json:"from"`
+	LastPage    int    `json:"last_page"`
+	Path        string `json:"path"`
+	PerPage     int    `json:"per_page"`
+	To          int    `json:"to"`
+	Total       int    `json:"total"`
 }
 
 // ListOptions are the pagination and filtering (TODO) parameters for endpoints
@@ -30,13 +34,13 @@ type ListOptions struct {
 // NewListOptions simplified construction of ListOptions using only
 // the two writable properties, Page and Filter
 func NewListOptions(page int, filter string) *ListOptions {
-	return &ListOptions{PageOptions: &PageOptions{Page: page}, Filter: filter}
+	return &ListOptions{PageOptions: &PageOptions{CurrentPage: page}, Filter: filter}
 }
 
 func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) {
 	if opts != nil {
-		if opts.PageOptions != nil && opts.Page > 0 {
-			req.SetQueryParam("page", strconv.Itoa(opts.Page))
+		if opts.PageOptions != nil && opts.CurrentPage > 0 {
+			req.SetQueryParam("page", strconv.Itoa(opts.CurrentPage))
 		}
 
 		if opts.PageSize > 0 {
@@ -73,8 +77,8 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 			if !ok {
 				return fmt.Errorf("response is not a *DomainsPagedResponse")
 			}
-			pages = response.Pages
-			results = response.Results
+			pages = response.LastPage
+			results = response.LastPage
 			v.appendData(response)
 		}
 
@@ -88,7 +92,7 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 
 	if opts == nil {
 		for page := 2; page <= pages; page++ {
-			if err := c.listHelper(ctx, i, &ListOptions{PageOptions: &PageOptions{Page: page}}); err != nil {
+			if err := c.listHelper(ctx, i, &ListOptions{PageOptions: &PageOptions{CurrentPage: page}}); err != nil {
 				return err
 			}
 		}
@@ -97,80 +101,16 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 			opts.PageOptions = &PageOptions{}
 		}
 
-		if opts.Page == 0 {
+		if opts.CurrentPage == 0 {
 			for page := 2; page <= pages; page++ {
-				opts.Page = page
+				opts.CurrentPage = page
 				if err := c.listHelper(ctx, i, opts); err != nil {
 					return err
 				}
 			}
 		}
-		opts.Results = results
-		opts.Pages = pages
-	}
-
-	return nil
-}
-
-// listHelperWithID abstracts fetching and pagination for GET endpoints that
-// require an Id (second level endpoints).
-// When opts (or opts.Page) is nil, all pages will be fetched and
-// returned in a single (endpoint-specific)PagedResponse
-// opts.results and opts.pages will be updated from the API response
-// nolint
-func (c *Client) listHelperWithID(ctx context.Context, i interface{}, idRaw interface{}, opts *ListOptions) error {
-	var (
-		err     error
-		pages   int
-		results int
-		r       *resty.Response
-	)
-
-	req := c.R(ctx)
-	applyListOptionsToRequest(opts, req)
-
-	id, _ := idRaw.(int)
-
-	switch v := i.(type) {
-	case *DomainRecordsPagedResponse:
-		if r, err = coupleAPIErrors(req.SetResult(DomainRecordsPagedResponse{}).Get(v.endpointWithID(c, id))); err == nil {
-			response, ok := r.Result().(*DomainRecordsPagedResponse)
-			if !ok {
-				return fmt.Errorf("response is not a *DomainRecordsPagedResponse")
-			}
-			pages = response.Pages
-			results = response.Results
-			v.appendData(response)
-		}
-
-	default:
-		log.Fatalf("Unknown listHelperWithID interface{} %T used", i)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if opts == nil {
-		for page := 2; page <= pages; page++ {
-			if err := c.listHelperWithID(ctx, i, id, &ListOptions{PageOptions: &PageOptions{Page: page}}); err != nil {
-				return err
-			}
-		}
-	} else {
-		if opts.PageOptions == nil {
-			opts.PageOptions = &PageOptions{}
-		}
-		if opts.Page == 0 {
-			for page := 2; page <= pages; page++ {
-				opts.Page = page
-				if err := c.listHelperWithID(ctx, i, id, opts); err != nil {
-					return err
-				}
-			}
-		}
-		opts.Results = results
-		opts.Pages = pages
+		opts.Total = results
+		opts.CurrentPage = pages
 	}
 
 	return nil
