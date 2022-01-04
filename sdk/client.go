@@ -140,6 +140,16 @@ func (c *Client) SetDebug(debug bool) *Client {
 	return c
 }
 
+// Resource looks up a resource by name
+func (c Client) Resource(resourceName string) *Resource {
+	selectedResource, ok := c.resources[resourceName]
+	if !ok {
+		log.Fatalf("Could not find resource named '%s', exiting.", resourceName)
+	}
+
+	return selectedResource
+}
+
 // nolint
 func addResources(client *Client) {
 	resources := map[string]*Resource{

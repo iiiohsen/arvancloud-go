@@ -1,0 +1,1046 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>sdk: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/S4eedb/arvancloud-go/sdk/account.go (0.0%)</option>
+				
+				<option value="file1">github.com/S4eedb/arvancloud-go/sdk/arvancloud.go (0.0%)</option>
+				
+				<option value="file2">github.com/S4eedb/arvancloud-go/sdk/client.go (65.1%)</option>
+				
+				<option value="file3">github.com/S4eedb/arvancloud-go/sdk/domains.go (0.0%)</option>
+				
+				<option value="file4">github.com/S4eedb/arvancloud-go/sdk/errors.go (16.7%)</option>
+				
+				<option value="file5">github.com/S4eedb/arvancloud-go/sdk/pagination.go (0.0%)</option>
+				
+				<option value="file6">github.com/S4eedb/arvancloud-go/sdk/resources.go (26.9%)</option>
+				
+				<option value="file7">github.com/S4eedb/arvancloud-go/sdk/retries.go (6.2%)</option>
+				
+				<option value="file8">github.com/S4eedb/arvancloud-go/sdk/version.go (33.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package sdk
+
+import "context"
+
+// Account associated with the token in use.
+type Account struct {
+        FirstName         string  `json:"first_name"`
+        LastName          string  `json:"last_name"`
+        Email             string  `json:"email"`
+        Company           string  `json:"company"`
+        Address1          string  `json:"address_1"`
+        Address2          string  `json:"address_2"`
+        Balance           float32 `json:"balance"`
+        BalanceUninvoiced float32 `json:"balance_uninvoiced"`
+        City              string  `json:"city"`
+        State             string  `json:"state"`
+        Zip               string  `json:"zip"`
+        Country           string  `json:"country"`
+        TaxID             string  `json:"tax_id"`
+        Phone             string  `json:"phone"`
+}
+
+// GetAccount gets the contact and billing information related to the Account.
+func (c *Client) GetAccount(ctx context.Context) (*Account, error) <span class="cov0" title="0">{
+        e, err := c.Account.Endpoint()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">r, err := coupleAPIErrors(c.R(ctx).SetResult(&amp;Account{}).Get(e))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return r.Result().(*Account), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package sdk
+
+import "errors"
+
+const apiURL = "https://napi.arvancloud.com"
+
+// API holds the configuration for the current API client. A client should not
+// be modified concurrently.
+type API struct {
+        APIEmail string
+        APIToken string
+        BaseURL  string
+}
+
+// newClient provides shared logic for New and NewWithUserServiceKey
+func newClient() (*API, error) <span class="cov0" title="0">{
+
+        api := &amp;API{
+                BaseURL: apiURL,
+        }
+
+        return api, nil
+}</span>
+
+// New creates a new Cloudflare v4 API client.
+func New(token, email string) (*API, error) <span class="cov0" title="0">{
+        if token == "" || email == "" </span><span class="cov0" title="0">{
+                return nil, errors.New("err Empty Credentials")
+        }</span>
+
+        <span class="cov0" title="0">api, err := newClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">api.APIToken = token
+        api.APIEmail = email
+
+        return api, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package sdk
+
+import (
+        "context"
+        "fmt"
+        "io/ioutil"
+        "log"
+        "net/url"
+        "os"
+        "path"
+        "time"
+
+        "github.com/go-resty/resty/v2"
+)
+
+var envDebug = false
+
+const (
+        // APIHost Arvancloud API hostname
+        APIHost = "napi.arvancloud.com"
+        // APIHostVar environment var to check for alternate API URL
+        APIHostVar = "ARVANCLOUD_URL"
+        // APIHostCert environment var containing path to CA cert to validate against
+        APIHostCert = "ARVANCLOUD_CA"
+        // APIVersion Arvancloud API version
+        APIVersion = "cdn/4.0"
+        // APIVersionVar environment var to check for alternate API Version
+        APIVersionVar = "ARVANCLOUD_API_VERSION"
+        // APIProto connect to API with http(s)
+        APIProto = "https"
+        // APIEnvVar environment var to check for API token
+        APIEnvVar = "ARVANCLOUD_TOKEN"
+        // APISecondsPerPoll how frequently to poll for new Events or Status in WaitFor functions
+        APISecondsPerPoll = 3
+        // Maximum wait time for retries
+        APIRetryMaxWaitTime = time.Duration(30) * time.Second
+)
+
+// Client is a wrapper around the Resty client
+type Client struct {
+        resty             *resty.Client
+        userAgent         string
+        resources         map[string]*Resource
+        debug             bool
+        retryConditionals []RetryConditional
+
+        millisecondsPerPoll time.Duration
+
+        baseURL    string
+        apiVersion string
+        apiProto   string
+
+        Domains       *Resource
+        DomainRecords *Resource
+        Account       *Resource
+}
+
+// R wraps resty's R method
+func (c *Client) R(ctx context.Context) *resty.Request <span class="cov0" title="0">{
+        return c.resty.R().
+                ExpectContentType("application/json").
+                SetHeader("Content-Type", "application/json").
+                SetContext(ctx).
+                SetError(APIError{})
+}</span>
+
+// SetAuthHeader sets a custom user-agent for HTTP requests and APIkey
+func (c *Client) SetAuthHeader(ua, apkiKey string) *Client <span class="cov3" title="2">{
+        c.userAgent = ua
+        c.resty.SetHeader("User-Agent", c.userAgent)
+        c.resty.SetHeader("Authorization", apkiKey)
+        return c
+}</span>
+
+func (c *Client) SetUserAgent(apkiKey string) *Client <span class="cov0" title="0">{
+        c.resty.SetHeader("User-Agent", apkiKey)
+        return c
+}</span>
+
+func (c *Client) SetBaseURL(baseURL string) *Client <span class="cov6" title="4">{
+        baseURLPath, _ := url.Parse(baseURL)
+
+        c.baseURL = path.Join(baseURLPath.Host, baseURLPath.Path)
+        c.apiProto = baseURLPath.Scheme
+
+        c.updateHostURL()
+
+        return c
+}</span>
+
+func NewClient(apikey string) (client Client) <span class="cov3" title="2">{
+
+        client.resty = resty.New()
+
+        client.SetAuthHeader(DefaultUserAgent, apikey)
+        baseURL, baseURLExists := os.LookupEnv(APIHostVar)
+
+        if baseURLExists </span><span class="cov0" title="0">{
+                client.SetBaseURL(baseURL)
+        }</span> else<span class="cov3" title="2"> {
+                apiVersion, apiVersionExists := os.LookupEnv(APIVersionVar)
+                if apiVersionExists </span><span class="cov0" title="0">{
+                        client.SetAPIVersion(apiVersion)
+                }</span> else<span class="cov3" title="2"> {
+                        client.SetAPIVersion(APIVersion)
+                }</span>
+        }
+
+        <span class="cov3" title="2">certPath, certPathExists := os.LookupEnv(APIHostCert)
+
+        if certPathExists </span><span class="cov0" title="0">{
+                cert, err := ioutil.ReadFile(certPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("[ERROR] Error when reading cert at %s: %s\n", certPath, err.Error())
+                }</span>
+
+                <span class="cov0" title="0">client.SetRootCertificate(certPath)
+
+                if envDebug </span><span class="cov0" title="0">{
+                        log.Printf("[DEBUG] Set API root certificate to %s with contents %s\n", certPath, cert)
+                }</span>
+        }
+
+        <span class="cov3" title="2">client.
+                SetRetryWaitTime((1000 * APISecondsPerPoll) * time.Millisecond).
+                SetPollDelay(1000 * APISecondsPerPoll).
+                SetRetries().
+                SetDebug(envDebug)
+
+        addResources(&amp;client)
+
+        return</span>
+}
+
+// SetDebug sets the debug on resty's client
+func (c *Client) SetDebug(debug bool) *Client <span class="cov3" title="2">{
+        c.debug = debug
+        c.resty.SetDebug(debug)
+
+        return c
+}</span>
+
+// Resource looks up a resource by name
+func (c Client) Resource(resourceName string) *Resource <span class="cov1" title="1">{
+        selectedResource, ok := c.resources[resourceName]
+        if !ok </span><span class="cov0" title="0">{
+                log.Fatalf("Could not find resource named '%s', exiting.", resourceName)
+        }</span>
+
+        <span class="cov1" title="1">return selectedResource</span>
+}
+
+// nolint
+func addResources(client *Client) <span class="cov3" title="2">{
+        resources := map[string]*Resource{
+                accountName: NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+                domainsName: NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
+        }
+
+        client.resources = resources
+
+        client.Account = resources[accountName]
+        client.DomainRecords = resources[domainRecordsName]
+        client.Domains = resources[domainsName]
+
+}</span>
+
+func (c *Client) SetRetries() *Client <span class="cov3" title="2">{
+        c.
+                addRetryConditional(ArvancloudBusyRetryCondition).
+                addRetryConditional(tooManyRequestsRetryCondition).
+                addRetryConditional(serviceUnavailableRetryCondition).
+                addRetryConditional(requestTimeoutRetryCondition).
+                SetRetryMaxWaitTime(APIRetryMaxWaitTime)
+        configureRetries(c)
+        return c
+}</span>
+
+func (c *Client) addRetryConditional(retryConditional RetryConditional) *Client <span class="cov9" title="8">{
+        c.retryConditionals = append(c.retryConditionals, retryConditional)
+        return c
+}</span>
+
+// SetRetryMaxWaitTime sets the maximum delay before retrying a request.
+func (c *Client) SetRetryMaxWaitTime(max time.Duration) *Client <span class="cov3" title="2">{
+        c.resty.SetRetryMaxWaitTime(max)
+        return c
+}</span>
+
+// SetPollDelay sets the number of milliseconds to wait between events or status polls.
+// Affects all WaitFor* functions and retries.
+func (c *Client) SetPollDelay(delay time.Duration) *Client <span class="cov3" title="2">{
+        c.millisecondsPerPoll = delay
+        return c
+}</span>
+
+// SetRetryWaitTime sets the default (minimum) delay before retrying a request.
+func (c *Client) SetRetryWaitTime(min time.Duration) *Client <span class="cov3" title="2">{
+        c.resty.SetRetryWaitTime(min)
+        return c
+}</span>
+
+// SetRootCertificate adds a root certificate to the underlying TLS client config
+func (c *Client) SetRootCertificate(path string) *Client <span class="cov0" title="0">{
+        c.resty.SetRootCertificate(path)
+        return c
+}</span>
+
+// SetAPIVersion sets the version of the API to interface with
+func (c *Client) SetAPIVersion(apiVersion string) *Client <span class="cov8" title="6">{
+        c.apiVersion = apiVersion
+
+        c.updateHostURL()
+
+        return c
+}</span>
+
+func (c *Client) updateHostURL() <span class="cov10" title="10">{
+        apiProto := APIProto
+        baseURL := APIHost
+        apiVersion := APIVersion
+
+        if c.baseURL != "" </span><span class="cov9" title="8">{
+                baseURL = c.baseURL
+        }</span>
+
+        <span class="cov10" title="10">if c.apiVersion != "" </span><span class="cov10" title="10">{
+                apiVersion = c.apiVersion
+        }</span>
+
+        <span class="cov10" title="10">if c.apiProto != "" </span><span class="cov3" title="2">{
+                apiProto = c.apiProto
+        }</span>
+
+        <span class="cov10" title="10">c.resty.SetHostURL(fmt.Sprintf("%s://%s/%s", apiProto, baseURL, apiVersion))</span>
+}
+func copyBool(bPtr *bool) *bool <span class="cov0" title="0">{
+        if bPtr == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">t := *bPtr
+
+        return &amp;t</span>
+}
+
+func copyInt(iPtr *int) *int <span class="cov0" title="0">{
+        if iPtr == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">t := *iPtr
+
+        return &amp;t</span>
+}
+
+func copyString(sPtr *string) *string <span class="cov0" title="0">{
+        if sPtr == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">t := *sPtr
+
+        return &amp;t</span>
+}
+
+func copyTime(tPtr *time.Time) *time.Time <span class="cov0" title="0">{
+        if tPtr == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">t := *tPtr
+
+        return &amp;t</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package sdk
+
+import (
+        "context"
+        "time"
+)
+
+// Domain represents a Domain object
+type Domain struct {
+        ID       string `json:"id"`
+        UserID   string `json:"user_id"`
+        Domain   string `json:"domain"`
+        Name     string `json:"name"`
+        Services struct {
+                DNS           string `json:"dns"`
+                Cdn           bool   `json:"cdn"`
+                CloudSecurity bool   `json:"cloud_security"`
+        } `json:"services"`
+        DNSCloud           bool      `json:"dns_cloud"`
+        PlanLevel          int       `json:"plan_level"`
+        PlanDowngradableAt time.Time `json:"plan_downgradable_at"`
+        Features           struct {
+                EditableVetitiRules    bool `json:"editable_vetiti_rules"`
+                EditableDdosRules      bool `json:"editable_ddos_rules"`
+                EditableRateLimitRules bool `json:"editable_rate_limit_rules"`
+                PackagesForWaf         bool `json:"packages_for_waf"`
+                UseNewPlans            bool `json:"use_new_plans"`
+                UseHealthCheck         bool `json:"use_health_check"`
+                FirewallRuleExpr       bool `json:"firewall_rule_expr"`
+                UseNewSslModule        bool `json:"use_new_ssl_module"`
+                UseNewLoadBalancer     bool `json:"use_new_load_balancer"`
+        } `json:"features"`
+        NsKeys             []string  `json:"ns_keys"`
+        SmartRoutingStatus string    `json:"smart_routing_status"`
+        CurrentNs          []string  `json:"current_ns"`
+        Status             string    `json:"status"`
+        ParentDomain       bool      `json:"parent_domain"`
+        IsPaused           bool      `json:"is_paused"`
+        IsSuspended        bool      `json:"is_suspended"`
+        CreatedAt          time.Time `json:"created_at"`
+        UpdatedAt          time.Time `json:"updated_at"`
+}
+
+// ListDomains lists Domains
+func (c *Client) ListDomains(ctx context.Context, opts *ListOptions) ([]Domain, error) <span class="cov0" title="0">{
+        response := DomainsPagedResponse{}
+        err := c.listHelper(ctx, &amp;response, opts)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return response.Data, nil</span>
+}
+
+// appendData appends Domains when processing paginated Domain responses
+func (resp *DomainsPagedResponse) appendData(r *DomainsPagedResponse) <span class="cov0" title="0">{
+        resp.Data = append(resp.Data, r.Data...)
+}</span>
+
+// DomainsPagedResponse represents a paginated Domain API response
+type DomainsPagedResponse struct {
+        *PageOptions `json:"meta"`
+        Data         []Domain `json:"data"`
+}
+
+// endpoint gets the endpoint URL for Domain
+func (DomainsPagedResponse) endpoint(c *Client) string <span class="cov0" title="0">{
+        endpoint, err := c.Domains.Endpoint()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">return endpoint</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package sdk
+
+import (
+        "fmt"
+        "log"
+        "net/http"
+        "strings"
+
+        "github.com/go-resty/resty/v2"
+)
+
+const (
+        // ErrorFromString is the Code identifying Errors created by string types
+        ErrorFromString = 1
+        // ErrorFromError is the Code identifying Errors created by error types
+        ErrorFromError = 2
+        // ErrorFromStringer is the Code identifying Errors created by fmt.Stringer types
+        ErrorFromStringer = 3
+)
+
+// Error wraps the ArvancloudGo error with the relevant http.Response
+type Error struct {
+        Response *http.Response
+        Code     int
+        Message  string
+}
+
+// APIErrorReason is an individual invalid request message returned by the Arvancloud API
+type APIErrorReason struct {
+        Reason string `json:"reason"`
+        Field  string `json:"field"`
+}
+
+func (r APIErrorReason) Error() string <span class="cov0" title="0">{
+        if len(r.Field) == 0 </span><span class="cov0" title="0">{
+                return r.Reason
+        }</span>
+
+        <span class="cov0" title="0">return fmt.Sprintf("[%s] %s", r.Field, r.Reason)</span>
+}
+
+// APIError is the error-set returned by the Arvancloud API when presented with an invalid request
+type APIError struct {
+        Errors []APIErrorReason `json:"errors"`
+}
+
+func coupleAPIErrors(r *resty.Response, err error) (*resty.Response, error) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, NewError(err)
+        }</span>
+
+        <span class="cov8" title="1">if r.Error() != nil </span><span class="cov8" title="1">{
+                // Check that response is of the correct content-type before unmarshalling
+                expectedContentType := r.Request.Header.Get("Accept")
+                responseContentType := r.Header().Get("Content-Type")
+
+                // If the upstream Arvancloud API server being fronted fails to respond to the request,
+                // the http server will respond with a default "Bad Gateway" page with Content-Type
+                // "text/html".
+                if r.StatusCode() == http.StatusBadGateway &amp;&amp; responseContentType == "text/html" </span><span class="cov8" title="1">{
+                        return nil, Error{Code: http.StatusBadGateway, Message: http.StatusText(http.StatusBadGateway)}
+                }</span>
+
+                <span class="cov0" title="0">if responseContentType != expectedContentType </span><span class="cov0" title="0">{
+                        msg := fmt.Sprintf(
+                                "Unexpected Content-Type: Expected: %v, Received: %v\nResponse body: %s",
+                                expectedContentType,
+                                responseContentType,
+                                string(r.Body()),
+                        )
+
+                        return nil, Error{Code: r.StatusCode(), Message: msg}
+                }</span>
+
+                <span class="cov0" title="0">apiError, ok := r.Error().(*APIError)
+                if !ok || (ok &amp;&amp; len(apiError.Errors) == 0) </span><span class="cov0" title="0">{
+                        return r, nil
+                }</span>
+
+                <span class="cov0" title="0">return nil, NewError(r)</span>
+        }
+
+        <span class="cov0" title="0">return r, nil</span>
+}
+
+func (e APIError) Error() string <span class="cov0" title="0">{
+        x := []string{}
+        for _, msg := range e.Errors </span><span class="cov0" title="0">{
+                x = append(x, msg.Error())
+        }</span>
+
+        <span class="cov0" title="0">return strings.Join(x, "; ")</span>
+}
+
+func (g Error) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("[%03d] %s", g.Code, g.Message)
+}</span>
+
+// NewError creates a arvancloudgo.Error with a Code identifying the source err type,
+// - ErrorFromString   (1) from a string
+// - ErrorFromError    (2) for an error
+// - ErrorFromStringer (3) for a Stringer
+// - HTTP Status Codes (100-600) for a resty.Response object
+func NewError(err interface{}) *Error <span class="cov0" title="0">{
+        if err == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">switch e := err.(type) </span>{
+        case *Error:<span class="cov0" title="0">
+                return e</span>
+        case *resty.Response:<span class="cov0" title="0">
+                apiError, ok := e.Error().(*APIError)
+
+                if !ok </span><span class="cov0" title="0">{
+                        log.Fatalln("Unexpected Resty Error Response")
+                }</span>
+
+                <span class="cov0" title="0">return &amp;Error{
+                        Code:     e.RawResponse.StatusCode,
+                        Message:  apiError.Error(),
+                        Response: e.RawResponse,
+                }</span>
+        case error:<span class="cov0" title="0">
+                return &amp;Error{Code: ErrorFromError, Message: e.Error()}</span>
+        case string:<span class="cov0" title="0">
+                return &amp;Error{Code: ErrorFromString, Message: e}</span>
+        case fmt.Stringer:<span class="cov0" title="0">
+                return &amp;Error{Code: ErrorFromStringer, Message: e.String()}</span>
+        default:<span class="cov0" title="0">
+                log.Fatalln("Unsupported type to arvancloudgo.NewError")
+                panic(err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package sdk
+
+/**
+ * Pagination and Filtering types and helpers
+ */
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "strconv"
+
+        "github.com/go-resty/resty/v2"
+)
+
+// PageOptions are the pagination parameters for List endpoints
+type PageOptions struct {
+        CurrentPage int    `json:"current_page"`
+        From        int    `json:"from"`
+        LastPage    int    `json:"last_page"`
+        Path        string `json:"path"`
+        PerPage     int    `json:"per_page"`
+        To          int    `json:"to"`
+        Total       int    `json:"total"`
+}
+
+// ListOptions are the pagination and filtering (TODO) parameters for endpoints
+type ListOptions struct {
+        *PageOptions
+        PageSize int
+        Filter   string
+}
+
+// NewListOptions simplified construction of ListOptions using only
+// the two writable properties, Page and Filter
+func NewListOptions(page int, filter string) *ListOptions <span class="cov0" title="0">{
+        return &amp;ListOptions{PageOptions: &amp;PageOptions{CurrentPage: page}, Filter: filter}
+}</span>
+
+func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) <span class="cov0" title="0">{
+        if opts != nil </span><span class="cov0" title="0">{
+                if opts.PageOptions != nil &amp;&amp; opts.CurrentPage &gt; 0 </span><span class="cov0" title="0">{
+                        req.SetQueryParam("page", strconv.Itoa(opts.CurrentPage))
+                }</span>
+
+                <span class="cov0" title="0">if opts.PageSize &gt; 0 </span><span class="cov0" title="0">{
+                        req.SetQueryParam("page_size", strconv.Itoa(opts.PageSize))
+                }</span>
+
+                <span class="cov0" title="0">if len(opts.Filter) &gt; 0 </span><span class="cov0" title="0">{
+                        req.SetHeader("X-Filter", opts.Filter)
+                }</span>
+        }
+}
+
+// listHelper abstracts fetching and pagination for GET endpoints that
+// do not require any Ids (top level endpoints).
+// When opts (or opts.Page) is nil, all pages will be fetched and
+// returned in a single (endpoint-specific)PagedResponse
+// opts.results and opts.pages will be updated from the API response
+// nolint
+func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOptions) error <span class="cov0" title="0">{
+        var (
+                err     error
+                pages   int
+                results int
+                r       *resty.Response
+        )
+
+        req := c.R(ctx)
+        applyListOptionsToRequest(opts, req)
+
+        switch v := i.(type) </span>{
+        case *DomainsPagedResponse:<span class="cov0" title="0">
+                if r, err = coupleAPIErrors(req.SetResult(DomainsPagedResponse{}).Get(v.endpoint(c))); err == nil </span><span class="cov0" title="0">{
+                        response, ok := r.Result().(*DomainsPagedResponse)
+                        if !ok </span><span class="cov0" title="0">{
+                                return fmt.Errorf("response is not a *DomainsPagedResponse")
+                        }</span>
+                        <span class="cov0" title="0">pages = response.LastPage
+                        results = response.LastPage
+                        v.appendData(response)</span>
+                }
+
+        default:<span class="cov0" title="0">
+                log.Fatalf("listHelper interface{} %+v used", i)</span>
+        }
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if opts == nil </span><span class="cov0" title="0">{
+                for page := 2; page &lt;= pages; page++ </span><span class="cov0" title="0">{
+                        if err := c.listHelper(ctx, i, &amp;ListOptions{PageOptions: &amp;PageOptions{CurrentPage: page}}); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                }
+        } else<span class="cov0" title="0"> {
+                if opts.PageOptions == nil </span><span class="cov0" title="0">{
+                        opts.PageOptions = &amp;PageOptions{}
+                }</span>
+
+                <span class="cov0" title="0">if opts.CurrentPage == 0 </span><span class="cov0" title="0">{
+                        for page := 2; page &lt;= pages; page++ </span><span class="cov0" title="0">{
+                                opts.CurrentPage = page
+                                if err := c.listHelper(ctx, i, opts); err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                        }
+                }
+                <span class="cov0" title="0">opts.Total = results
+                opts.CurrentPage = pages</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package sdk
+
+import (
+        "bytes"
+        "context"
+        "fmt"
+        "text/template"
+
+        "github.com/go-resty/resty/v2"
+)
+
+const (
+        accountName           = "account"
+        accountSettingsName   = "accountsettings"
+        domainRecordsName     = "records"
+        domainsName           = "domains"
+        domainsEndpoint       = "domains"
+        accountEndpoint       = "account"
+        domainRecordsEndpoint = "domains/{{ .ID }}/records"
+)
+
+// Resource represents a arvancloud API resource
+type Resource struct {
+        name             string
+        endpoint         string
+        isTemplate       bool
+        endpointTemplate *template.Template
+        R                func(ctx context.Context) *resty.Request
+        PR               func(ctx context.Context) *resty.Request
+}
+
+// NewResource is the factory to create a new Resource struct. If it has a template string the useTemplate bool must be set.
+func NewResource(client *Client, name string, endpoint string, useTemplate bool, singleType interface{}, pagedType interface{}) *Resource <span class="cov10" title="4">{
+        var tmpl *template.Template
+
+        if useTemplate </span><span class="cov0" title="0">{
+                tmpl = template.Must(template.New(name).Parse(endpoint))
+        }</span>
+
+        <span class="cov10" title="4">r := func(ctx context.Context) *resty.Request </span><span class="cov0" title="0">{
+                return client.R(ctx).SetResult(singleType)
+        }</span>
+
+        <span class="cov10" title="4">pr := func(ctx context.Context) *resty.Request </span><span class="cov0" title="0">{
+                return client.R(ctx).SetResult(pagedType)
+        }</span>
+
+        <span class="cov10" title="4">return &amp;Resource{name, endpoint, useTemplate, tmpl, r, pr}</span>
+}
+
+func (r Resource) render(data ...interface{}) (string, error) <span class="cov0" title="0">{
+        if data == nil </span><span class="cov0" title="0">{
+                return "", NewError("Cannot template endpoint with &lt;nil&gt; data")
+        }</span>
+        <span class="cov0" title="0">out := ""
+        buf := bytes.NewBufferString(out)
+
+        var substitutions interface{}
+
+        switch len(data) </span>{
+        case 1:<span class="cov0" title="0">
+                substitutions = struct{ ID interface{} }{data[0]}</span>
+        case 2:<span class="cov0" title="0">
+                substitutions = struct {
+                        ID       interface{}
+                        SecondID interface{}
+                }{data[0], data[1]}</span>
+        default:<span class="cov0" title="0">
+                return "", NewError("Too many arguments to render template (expected 1 or 2)")</span>
+        }
+
+        <span class="cov0" title="0">if err := r.endpointTemplate.Execute(buf, substitutions); err != nil </span><span class="cov0" title="0">{
+                return "", NewError(err)
+        }</span>
+        <span class="cov0" title="0">return buf.String(), nil</span>
+}
+
+// endpointWithParams will return the rendered endpoint string for the resource with provided parameters
+func (r Resource) endpointWithParams(params ...interface{}) (string, error) <span class="cov0" title="0">{
+        if !r.isTemplate </span><span class="cov0" title="0">{
+                return r.endpoint, nil
+        }</span>
+        <span class="cov0" title="0">return r.render(params...)</span>
+}
+
+// Endpoint will return the non-templated endpoint string for resource
+func (r Resource) Endpoint() (string, error) <span class="cov1" title="1">{
+        if r.isTemplate </span><span class="cov0" title="0">{
+                return "", NewError(fmt.Sprintf("Tried to get endpoint for %s without providing data for template", r.name))
+        }</span>
+        <span class="cov1" title="1">return r.endpoint, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package sdk
+
+import (
+        "log"
+        "net/http"
+        "strconv"
+        "time"
+
+        "github.com/go-resty/resty/v2"
+)
+
+const (
+        retryAfterHeaderName      = "Retry-After"
+        maintenanceModeHeaderName = "X-Maintenance-Mode"
+)
+
+// type RetryConditional func(r *resty.Response) (shouldRetry bool)
+type RetryConditional resty.RetryConditionFunc
+
+// type RetryAfter func(c *resty.Client, r *resty.Response) (time.Duration, error)
+type RetryAfter resty.RetryAfterFunc
+
+// SetArvancloudBusyRetry configures resty to retry specifically on "Arvancloud busy." errors
+// The retry wait time is configured in SetPollDelay
+func ArvancloudBusyRetryCondition(r *resty.Response, _ error) bool <span class="cov0" title="0">{
+        apiError, ok := r.Error().(*APIError)
+        arvancloudBusy := ok &amp;&amp; apiError.Error() == "Arvancloud busy."
+        retry := r.StatusCode() == http.StatusBadRequest &amp;&amp; arvancloudBusy
+        return retry
+}</span>
+
+// Configures resty to
+// lock until enough time has passed to retry the request as determined by the Retry-After response header.
+// If the Retry-After header is not set, we fall back to value of SetPollDelay.
+func configureRetries(c *Client) <span class="cov10" title="2">{
+        c.resty.
+                SetRetryCount(1000).
+                AddRetryCondition(checkRetryConditionals(c)).
+                SetRetryAfter(respectRetryAfter)
+}</span>
+
+func checkRetryConditionals(c *Client) func(*resty.Response, error) bool <span class="cov10" title="2">{
+        return func(r *resty.Response, err error) bool </span><span class="cov0" title="0">{
+                for _, retryConditional := range c.retryConditionals </span><span class="cov0" title="0">{
+                        retry := retryConditional(r, err)
+                        if retry </span><span class="cov0" title="0">{
+                                log.Printf("[INFO] Received error %s - Retrying", r.Error())
+                                return true
+                        }</span>
+                }
+                <span class="cov0" title="0">return false</span>
+        }
+}
+
+// SetArvancloudBusyRetry configures resty to retry specifically on "Arvancloud busy." errors
+// The retry wait time is configured in SetPollDelay
+func arvancloudBusyRetryCondition(r *resty.Response, _ error) bool <span class="cov0" title="0">{
+        apiError, ok := r.Error().(*APIError)
+        arvancloudBusy := ok &amp;&amp; apiError.Error() == "Arvancloud busy."
+        retry := r.StatusCode() == http.StatusBadRequest &amp;&amp; arvancloudBusy
+        return retry
+}</span>
+
+func tooManyRequestsRetryCondition(r *resty.Response, _ error) bool <span class="cov0" title="0">{
+        return r.StatusCode() == http.StatusTooManyRequests
+}</span>
+
+func serviceUnavailableRetryCondition(r *resty.Response, _ error) bool <span class="cov0" title="0">{
+        serviceUnavailable := r.StatusCode() == http.StatusServiceUnavailable
+
+        // During maintenance events, the API will return a 503 and add
+        // an `X-MAINTENANCE-MODE` header. Don't retry during maintenance
+        // events, only for legitimate 503s.
+        if serviceUnavailable &amp;&amp; r.Header().Get(maintenanceModeHeaderName) != "" </span><span class="cov0" title="0">{
+                log.Printf("[INFO] Arvancloud API is under maintenance, request will not be retried - please see status.arvancloud.com for more information")
+                return false
+        }</span>
+
+        <span class="cov0" title="0">return serviceUnavailable</span>
+}
+
+func requestTimeoutRetryCondition(r *resty.Response, _ error) bool <span class="cov0" title="0">{
+        return r.StatusCode() == http.StatusRequestTimeout
+}</span>
+
+func respectRetryAfter(client *resty.Client, resp *resty.Response) (time.Duration, error) <span class="cov0" title="0">{
+        retryAfterStr := resp.Header().Get(retryAfterHeaderName)
+        if retryAfterStr == "" </span><span class="cov0" title="0">{
+                return 0, nil
+        }</span>
+
+        <span class="cov0" title="0">retryAfter, err := strconv.Atoi(retryAfterStr)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">duration := time.Duration(retryAfter) * time.Second
+        log.Printf("[INFO] Respecting Retry-After Header of %d (%s) (max %s)", retryAfter, duration, client.RetryMaxWaitTime)
+        return duration, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package sdk
+
+import (
+        "fmt"
+        "runtime/debug"
+)
+
+const packagePath = "github.com/S4eedb/arvancloud-go"
+
+var (
+        Version = "dev"
+
+        // DefaultUserAgent is the default User-Agent sent in HTTP request headers
+        DefaultUserAgent string
+)
+
+// init attempts to source the version from the build info injected
+// at runtime and sets the DefaultUserAgent.
+func init() <span class="cov8" title="1">{
+        buildInfo, ok := debug.ReadBuildInfo()
+        if ok </span><span class="cov0" title="0">{
+                for _, dep := range buildInfo.Deps </span><span class="cov0" title="0">{
+                        if dep.Path == packagePath </span><span class="cov0" title="0">{
+                                if dep.Replace != nil </span><span class="cov0" title="0">{
+                                        Version = dep.Replace.Version
+                                }</span>
+                                <span class="cov0" title="0">Version = dep.Version
+                                break</span>
+                        }
+                }
+        }
+
+        <span class="cov8" title="1">DefaultUserAgent = fmt.Sprintf("arvancloud/%s https://github.com/S4eedb/arvancloud-go", Version)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
