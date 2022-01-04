@@ -140,12 +140,21 @@ func (c *Client) SetDebug(debug bool) *Client {
 	return c
 }
 
+// Resource looks up a resource by name
+func (c Client) Resource(resourceName string) *Resource {
+	selectedResource, ok := c.resources[resourceName]
+	if !ok {
+		log.Fatalf("Could not find resource named '%s', exiting.", resourceName)
+	}
+
+	return selectedResource
+}
+
 // nolint
 func addResources(client *Client) {
 	resources := map[string]*Resource{
-		accountName:       NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
-		domainsName:       NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
-		domainRecordsName: NewResource(client, domainRecordsName, domainRecordsEndpoint, true, DomainRecord{}, DomainRecordsPagedResponse{}),
+		accountName: NewResource(client, accountName, accountEndpoint, false, Account{}, nil),
+		domainsName: NewResource(client, domainsName, domainsEndpoint, false, Domain{}, DomainsPagedResponse{}),
 	}
 
 	client.resources = resources
