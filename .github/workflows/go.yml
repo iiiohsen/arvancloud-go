@@ -20,7 +20,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: download
-      run: go mod download
+      run: go mod tidy
     - name: test
       run: go test -v -race ./...
 
