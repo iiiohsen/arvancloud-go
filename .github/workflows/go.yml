@@ -19,7 +19,8 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v2
-
-    - name: Build
+    - name: download
+      run: go mod download
+    - name: test
       run: go test -v -race ./...
 
