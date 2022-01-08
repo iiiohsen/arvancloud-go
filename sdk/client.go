@@ -232,44 +232,5 @@ func (c *Client) updateHostURL() {
 		apiProto = c.apiProto
 	}
 
-	c.resty.SetHostURL(fmt.Sprintf("%s://%s/%s", apiProto, baseURL, apiVersion))
-}
-func copyBool(bPtr *bool) *bool {
-	if bPtr == nil {
-		return nil
-	}
-
-	t := *bPtr
-
-	return &t
-}
-
-func copyInt(iPtr *int) *int {
-	if iPtr == nil {
-		return nil
-	}
-
-	t := *iPtr
-
-	return &t
-}
-
-func copyString(sPtr *string) *string {
-	if sPtr == nil {
-		return nil
-	}
-
-	t := *sPtr
-
-	return &t
-}
-
-func copyTime(tPtr *time.Time) *time.Time {
-	if tPtr == nil {
-		return nil
-	}
-
-	t := *tPtr
-
-	return &t
+	c.resty.SetBaseURL(fmt.Sprintf("%s://%s/%s", apiProto, baseURL, apiVersion))
 }

@@ -10,14 +10,19 @@ import (
 )
 
 // PageOptions are the pagination parameters for List endpoints
-type PageOptions struct {
+
+type Meta struct {
 	CurrentPage int    `json:"current_page"`
 	From        int    `json:"from"`
 	LastPage    int    `json:"last_page"`
 	Path        string `json:"path"`
-	PageSize    int    `json:"per_page"`
+	PerPage     int    `json:"per_page"`
 	To          int    `json:"to"`
 	Total       int    `json:"total"`
+}
+
+type PageOptions struct {
+	Meta Meta `json:"meta"`
 }
 
 // ListOptions are the pagination and filtering (TODO) parameters for endpoints
@@ -28,18 +33,18 @@ type ListOptions struct {
 // NewListOptions simplified construction of ListOptions using only
 // the two writable properties, Page and Filter
 func NewListOptions(page int, filter string) *ListOptions {
-	return &ListOptions{PageOptions: &PageOptions{CurrentPage: page}}
+	return &ListOptions{PageOptions: &PageOptions{Meta: Meta{CurrentPage: page}}}
 
 }
 
 func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) {
 	if opts != nil {
-		if opts.PageOptions != nil && opts.CurrentPage > 0 {
-			req.SetQueryParam("page", strconv.Itoa(opts.CurrentPage))
+		if opts.PageOptions != nil && opts.Meta.CurrentPage > 0 {
+			req.SetQueryParam("page", strconv.Itoa(opts.Meta.CurrentPage))
 		}
 
-		if opts.PageSize > 0 {
-			req.SetQueryParam("page_size", strconv.Itoa(opts.PageSize))
+		if opts.Meta.PerPage > 0 {
+			req.SetQueryParam("page_size", strconv.Itoa(opts.Meta.PerPage))
 		}
 
 	}
@@ -69,8 +74,8 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 			if !ok {
 				return fmt.Errorf("response is not a *DomainsPagedResponse")
 			}
-			pages = response.LastPage
-			results = response.LastPage
+			pages = response.Meta.LastPage
+			results = response.Meta.LastPage
 			v.appendData(response)
 		}
 
@@ -84,7 +89,7 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 
 	if opts == nil {
 		for page := 2; page <= pages; page++ {
-			if err := c.listHelper(ctx, i, &ListOptions{PageOptions: &PageOptions{CurrentPage: page}}); err != nil {
+			if err := c.listHelper(ctx, i, &ListOptions{PageOptions: &PageOptions{Meta: Meta{CurrentPage: page}}}); err != nil {
 				return err
 			}
 		}
@@ -93,16 +98,16 @@ func (c *Client) listHelper(ctx context.Context, i interface{}, opts *ListOption
 			opts.PageOptions = &PageOptions{}
 		}
 
-		if opts.CurrentPage == 0 {
+		if opts.Meta.CurrentPage == 0 {
 			for page := 2; page <= pages; page++ {
-				opts.CurrentPage = page
+				opts.Meta.CurrentPage = page
 				if err := c.listHelper(ctx, i, opts); err != nil {
 					return err
 				}
 			}
 		}
-		opts.Total = results
-		opts.CurrentPage = pages
+		opts.Meta.Total = results
+		opts.Meta.CurrentPage = pages
 	}
 
 	return nil

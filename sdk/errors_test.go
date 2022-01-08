@@ -5,29 +5,11 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/google/go-cmp/cmp"
 )
-
-func createTestServer(method, route, contentType, body string, statusCode int) (*httptest.Server, *Client) {
-	h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method == method && r.URL.Path == route {
-			rw.Header().Add("Content-Type", contentType)
-			rw.WriteHeader(statusCode)
-			rw.Write([]byte(body))
-			return
-		}
-		rw.WriteHeader(http.StatusNotImplemented)
-	})
-	ts := httptest.NewServer(h)
-
-	client := NewClient("")
-	client.SetBaseURL(ts.URL)
-	return ts, &client
-}
 
 func TestCoupleAPIErrors_badGatewayError(t *testing.T) {
 	rawResponse := []byte(`<html>

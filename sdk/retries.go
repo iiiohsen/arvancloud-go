@@ -52,15 +52,6 @@ func checkRetryConditionals(c *Client) func(*resty.Response, error) bool {
 	}
 }
 
-// SetArvancloudBusyRetry configures resty to retry specifically on "Arvancloud busy." errors
-// The retry wait time is configured in SetPollDelay
-func arvancloudBusyRetryCondition(r *resty.Response, _ error) bool {
-	apiError, ok := r.Error().(*APIError)
-	arvancloudBusy := ok && apiError.Error() == "Arvancloud busy."
-	retry := r.StatusCode() == http.StatusBadRequest && arvancloudBusy
-	return retry
-}
-
 func tooManyRequestsRetryCondition(r *resty.Response, _ error) bool {
 	return r.StatusCode() == http.StatusTooManyRequests
 }
