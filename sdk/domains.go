@@ -1,14 +1,44 @@
 package sdk
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Domain represents a Domain object
 type Domain struct {
-	//	This Domain's unique ID
-	ID int `json:"id"`
-
-	// The domain this Domain represents. These must be unique in our system; you cannot have two Domains representing the same domain.
-	Domain string `json:"domain"`
+	ID       string `json:"id"`
+	UserID   string `json:"user_id"`
+	Domain   string `json:"domain"`
+	Name     string `json:"name"`
+	Services struct {
+		DNS           string `json:"dns"`
+		Cdn           bool   `json:"cdn"`
+		CloudSecurity bool   `json:"cloud_security"`
+	} `json:"services"`
+	DNSCloud           bool      `json:"dns_cloud"`
+	PlanLevel          int       `json:"plan_level"`
+	PlanDowngradableAt time.Time `json:"plan_downgradable_at"`
+	Features           struct {
+		EditableVetitiRules    bool `json:"editable_vetiti_rules"`
+		EditableDdosRules      bool `json:"editable_ddos_rules"`
+		EditableRateLimitRules bool `json:"editable_rate_limit_rules"`
+		PackagesForWaf         bool `json:"packages_for_waf"`
+		UseNewPlans            bool `json:"use_new_plans"`
+		UseHealthCheck         bool `json:"use_health_check"`
+		FirewallRuleExpr       bool `json:"firewall_rule_expr"`
+		UseNewSslModule        bool `json:"use_new_ssl_module"`
+		UseNewLoadBalancer     bool `json:"use_new_load_balancer"`
+	} `json:"features"`
+	NsKeys             []string  `json:"ns_keys"`
+	SmartRoutingStatus string    `json:"smart_routing_status"`
+	CurrentNs          []string  `json:"current_ns"`
+	Status             string    `json:"status"`
+	ParentDomain       bool      `json:"parent_domain"`
+	IsPaused           bool      `json:"is_paused"`
+	IsSuspended        bool      `json:"is_suspended"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
 }
 
 // ListDomains lists Domains

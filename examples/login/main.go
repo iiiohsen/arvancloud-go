@@ -31,7 +31,7 @@ func main() {
 	// fmt.Printf("%s", out)
 	domains, err := api.ListDomains(context.Background(), nil)
 	if err != nil {
-		log.Print("Error listing domains, expected struct, got error %v", err)
+		log.Printf("Error listing domains, expected struct, got error %v", err)
 	}
 	fmt.Print(domains)
 

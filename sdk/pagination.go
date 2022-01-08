@@ -15,22 +15,24 @@ import (
 
 // PageOptions are the pagination parameters for List endpoints
 type PageOptions struct {
-	Page    int `url:"page,omitempty" json:"page"`
-	Pages   int `url:"pages,omitempty" json:"pages"`
-	Results int `url:"results,omitempty" json:"results"`
+	Page     int    `json:"current_page"`
+	From     int    `json:"from"`
+	Pages    int    `json:"last_page"`
+	Path     string `json:"path"`
+	PageSize int    `json:"per_page"`
+	To       int    `json:"to"`
+	Results  int    `json:"total"`
 }
 
 // ListOptions are the pagination and filtering (TODO) parameters for endpoints
 type ListOptions struct {
 	*PageOptions
-	PageSize int
-	Filter   string
 }
 
 // NewListOptions simplified construction of ListOptions using only
 // the two writable properties, Page and Filter
 func NewListOptions(page int, filter string) *ListOptions {
-	return &ListOptions{PageOptions: &PageOptions{Page: page}, Filter: filter}
+	return &ListOptions{PageOptions: &PageOptions{Page: page}}
 }
 
 func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) {
@@ -43,9 +45,6 @@ func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) {
 			req.SetQueryParam("page_size", strconv.Itoa(opts.PageSize))
 		}
 
-		if len(opts.Filter) > 0 {
-			req.SetHeader("X-Filter", opts.Filter)
-		}
 	}
 }
 
