@@ -1,9 +1,5 @@
 package sdk
 
-/**
- * Pagination and Filtering types and helpers
- */
-
 import (
 	"context"
 	"fmt"
@@ -17,11 +13,11 @@ import (
 type PageOptions struct {
 	CurrentPage int    `json:"current_page"`
 	From        int    `json:"from"`
-	Pages       int    `json:"last_page"`
+	LastPage    int    `json:"last_page"`
 	Path        string `json:"path"`
 	PageSize    int    `json:"per_page"`
 	To          int    `json:"to"`
-	Results     int    `json:"total"`
+	Total       int    `json:"total"`
 }
 
 // ListOptions are the pagination and filtering (TODO) parameters for endpoints
@@ -32,7 +28,7 @@ type ListOptions struct {
 // NewListOptions simplified construction of ListOptions using only
 // the two writable properties, Page and Filter
 func NewListOptions(page int, filter string) *ListOptions {
-	return &ListOptions{PageOptions: &PageOptions{Page: page}}
+	return &ListOptions{PageOptions: &PageOptions{CurrentPage: page}}
 
 }
 
