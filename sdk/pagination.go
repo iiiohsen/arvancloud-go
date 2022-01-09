@@ -31,8 +31,8 @@ type ListOptions struct {
 }
 
 // NewListOptions simplified construction of ListOptions using only
-// the two writable properties, Page and Filter
-func NewListOptions(page int, filter string) *ListOptions {
+// the writable properties Page
+func NewListOptions(page int) *ListOptions {
 	return &ListOptions{PageOptions: &PageOptions{Meta: Meta{CurrentPage: page}}}
 
 }
@@ -44,7 +44,7 @@ func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) {
 		}
 
 		if opts.Meta.PerPage > 0 {
-			req.SetQueryParam("page_size", strconv.Itoa(opts.Meta.PerPage))
+			req.SetQueryParam("per_page", strconv.Itoa(opts.Meta.PerPage))
 		}
 
 	}
